@@ -1,0 +1,46 @@
+name: Notify Google Chat on GitHub Events
+
+on:
+  push:
+    branches:
+      - main
+  create:
+    branches:
+      - "**" # Notifica para qualquer branch criada
+
+jobs:
+  notify-gchat:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Notify Google Chat
+        env:
+          WEBHOOK_URL: ${{ secrets.GCHAT }}
+        run: |
+          EVENT_TYPE="${{ github.event_name }}"
+          REPO_NAME="${{ github.repository }}"
+          ACTOR="${{ github.actor }}"
+          BRANCH_REF="${{ github.ref }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          COMMIT_MESSAGE="${{ github.event.head_commit.message }}"
+
+          # Mensagem padrão
+          MESSAGE=""
+
+          case $EVENT_TYPE in
+            pull_request)
+              MESSAGE="🚀 Novo Pull Request no repositório *$REPO_NAME*:\n\n*Título:* $PR_TITLE\n*Autor:* $ACTOR\n*Link:* $PR_URL"
+              ;;
+            push)
+              MESSAGE="📌 Novo push no repositório *$REPO_NAME*:\n\n*Branch:* $BRANCH_REF\n*Autor:* $ACTOR\n*Mensagem do commit:* $COMMIT_MESSAGE"
+              ;;
+            create)
+              MESSAGE="🌿 Nova branch criada no repositório *$REPO_NAME*:\n\n*Branch:* $BRANCH_REF\n*Autor:* $ACTOR"
+              ;;
+          esac
+
+          # Envia a mensagem para o Google Chat
+          curl -X POST -H 'Content-Type: application/json' \
+            -d "{\"text\": \"$MESSAGE\"}" \
+            $WEBHOOK_URL
