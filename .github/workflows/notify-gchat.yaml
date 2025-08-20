@@ -11,11 +11,12 @@ on:
 jobs:
   notify-gchat:
     runs-on: ubuntu-latest
+    environment: env
 
     steps:
       - name: Notify Google Chat
         env:
-          WEBHOOK_URL: "https://chat.googleapis.com/v1/spaces/AAQA8l9DFe0/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=wEoqKNncNzrbqMfU1qp_N-qvshS72N7FccT-cP-1oRc"
+          WEBHOOK_URL: ${{secrets.GCHAT}}
         run: |
           EVENT_TYPE="${{ github.event_name }}"
           REPO_NAME="${{ github.repository }}"
